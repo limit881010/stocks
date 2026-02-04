@@ -1,5 +1,5 @@
 ---
-name: yahoo-stock
+name: yahoofi-info-signal
 description: Analyzes stock data and generates technical signals using Yahoo Finance. Use when the user asks for analysis of a specific stock ticker using this specific tool, or asks for "yahoo stock analysis" or mentions "get_info" or "signal" scripts. Provides RSI, MACD, MA, and simple trend signals.
 ---
 
