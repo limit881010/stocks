@@ -5,6 +5,7 @@
 ## 🧠 Agent 核心能力 (Capabilities)
 ### 1. 市場動態 (Market news) 
 > **使用skills：** `market-news-analyst`
+
 Agent 可以自動搜尋過去一周的全球股市與大宗商品市場產生重大影響的財經新聞：
 
 * **全方位掃描**：自動蒐集 FOMC 決策、關鍵經濟數據 (CPI/非農)、科技巨頭財報及地緣政治等重大事件。
