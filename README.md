@@ -3,8 +3,15 @@
 本專案是一套專為 AI Agent 打造的股票分析工具集（Skills），旨在讓 Agent 具備掃描台美股買入訊號、追蹤投資組合、以及執行深度個股財務診斷的能力。
 
 ## 🧠 Agent 核心能力 (Capabilities)
+### 1. 市場動態 (Market news) 
+> **使用skills：** `market-news-analyst`
+Agent 可以自動搜尋過去一周的全球股市與大宗商品市場產生重大影響的財經新聞：
 
-### 1. 市場掃描 (Market Scanning) 
+* **全方位掃描**：自動蒐集 FOMC 決策、關鍵經濟數據 (CPI/非農)、科技巨頭財報及地緣政治等重大事件。
+* **量化影響力**：透過 Impact Score 演算法評估新聞對股、債、匯、原物料的實際衝擊，並進行影響力排名。
+* **深度分析報告**：產出繁體中文週報，解析市場反應、跨資產連動性 (Correlation) 及未來趨勢展望。
+
+### 2. 市場掃描 (Market Scanning) 
 > **使用skills：** `stock-scanner`
 
 Agent 可以調用掃描器在數百檔股票中自動篩選符合技術形態的標的：
@@ -13,7 +20,7 @@ Agent 可以調用掃描器在數百檔股票中自動篩選符合技術形態�
 * **美股掃描**：分析指定的科技領頭股（如 NVDA, AAPL, TSLA 等）。
 * **策略回測**：每一筆訊號都會附帶歷史勝率（Win Rate）與預期報酬，供 Agent 進行優先級排序。
 
-### 2. 持倉監控 (Portfolio Monitoring)
+### 3. 持倉監控 (Portfolio Monitoring)
 > **使用skills：** `stock-scanner`
 
 Agent 具備自動化管理追蹤清單的能力：
@@ -21,7 +28,7 @@ Agent 具備自動化管理追蹤清單的能力：
 * **賣出警報**：監控 `watchlist.csv` 中的股票，當技術指標轉弱時產出 `🔴 SELL` 訊號。
 * **損益追蹤**：計算持有天數與即時損益百分比。
 
-### 3. 技術與財務診斷 (Technical & Fundamental Diagnosis)
+### 4. 技術與財務診斷 (Technical & Fundamental Diagnosis)
 > **使用skills：** `yahoofi-info-signal`
 
 Agent 能針對指定的股票代號執行深度檢查，產出結構化數據：
