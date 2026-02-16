@@ -9,9 +9,8 @@ import csv
 import time
 from datetime import datetime
 
-# Add strategy directory to path
-strategy_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'strategy')
-sys.path.insert(0, os.path.abspath(strategy_dir))
+# Add current directory to path for imports
+sys.path.insert(0, os.path.dirname(__file__))
 
 from bb_volume_strategy import (
     fetch_data, add_indicators,
@@ -50,9 +49,9 @@ def monitor_portfolio(watchlist_path='watchlist.csv'):
         print("📋 追蹤清單是空的")
         return
     
-    print("="*100)
+    print("="*120)
     print(f" 開始監控 {len(watchlist)} 個部位...")
-    print("="*100)
+    print("="*120)
     print()
     
     results = []
@@ -66,7 +65,6 @@ def monitor_portfolio(watchlist_path='watchlist.csv'):
         
         try:
             print(f"檢查 {ticker} ({strategy_name})...", end='\r')
-            time.sleep(1)
             
             # Fetch data
             df = fetch_data(ticker, start='2024-01-01')
@@ -75,7 +73,12 @@ def monitor_portfolio(watchlist_path='watchlist.csv'):
                 continue
                 
             df = add_indicators(df)
-            df = df.dropna()
+            
+            # CRITICAL FIX: Don't drop all NaNs because Chikou Span has 26 days of NaNs at the end.
+            # Only drop rows where essential price data or strategy-specific indicators are missing.
+            # For most strategies, we just need the last row to have its basic indicators.
+            # We'll fill NaNs in Chikou with 0 or just ignore it if the strategy doesn't use it.
+            df = df.ffill().dropna(subset=['Close', 'SMA', 'Upper_Band', 'Lower_Band'])
             
             # Get strategy function
             strategy_func = STRATEGIES.get(strategy_name)
@@ -85,7 +88,7 @@ def monitor_portfolio(watchlist_path='watchlist.csv'):
             # Check for sell signal
             signal_series = strategy_func(df)
             current_price = df['Close'].iloc[-1]
-            current_date = df.index[-1]
+            current_date = df.index[-1].strftime('%Y-%m-%d')
             
             # Calculate P&L
             pnl_pct = ((current_price - entry_price) / entry_price) * 100
@@ -101,6 +104,7 @@ def monitor_portfolio(watchlist_path='watchlist.csv'):
                 'Strategy': strategy_name,
                 'EntryPrice': entry_price,
                 'CurrentPrice': current_price,
+                'CurrentDate': current_date,
                 'PnL%': pnl_pct,
                 'DaysHeld': days_held,
                 'SellSignal': '🔴 SELL' if has_sell_signal else '🟢 HOLD'
@@ -123,55 +127,29 @@ def monitor_portfolio(watchlist_path='watchlist.csv'):
             continue
     
     # Display results
-    print("="*100)
+    print("="*120)
     print(" 持倉狀態總覽")
-    print("="*100)
-    print(f"{'股票':<10} | {'策略':<18} | {'狀態':<12} | {'買入':<10} | {'現價':<10} | {'損益%':<10} | {'持有天數':<8}")
-    print("-"*100)
+    print("="*120)
+    print(f"{'股票':<10} | {'策略':<18} | {'狀態':<12} | {'買入':<10} | {'現價':<10} | {'損益%':<10} | {'持有天數':<8} | {'資料日期':<10}")
+    print("-"*120)
     
     for r in results:
         pnl_emoji = '📈' if r['PnL%'] > 0 else '📉'
-        print(f"{r['Ticker']:<10} | {r['Strategy']:<18} | {r['SellSignal']:<12} | ${r['EntryPrice']:<9.2f} | ${r['CurrentPrice']:<9.2f} | {pnl_emoji} {r['PnL%']:>6.1f}% | {r['DaysHeld']:>7}天")
+        print(f"{r['Ticker']:<10} | {r['Strategy']:<18} | {r['SellSignal']:<12} | ${r['EntryPrice']:<9.2f} | ${r['CurrentPrice']:<9.2f} | {pnl_emoji} {r['PnL%']:>6.1f}% | {r['DaysHeld']:>7}天 | {r['CurrentDate']}")
     
-    print("="*100)
-    
-    # Show sell signals
-    if sell_signals:
-        print()
-        print("="*100)
-        print(" 🔴 賣出訊號警報 🔴")
-        print("="*100)
-        print()
-        
-        for sig in sell_signals:
-            pnl_status = '✅ 獲利' if sig['pnl_pct'] > 0 else '❌ 虧損'
-            print(f"[{sig['ticker']}] - {sig['strategy']}")
-            print(f"  買入: {sig['entry_date']} @ ${sig['entry_price']:.2f}")
-            print(f"  現在: {sig['df'].index[-1].strftime('%Y-%m-%d')} @ ${sig['current_price']:.2f}")
-            print(f"  損益: {pnl_status} {sig['pnl_pct']:+.2f}% (持有 {sig['days_held']} 天)")
-            print(f"  關鍵價位:")
-            print(f"    • 20 日均線: ${sig['df']['SMA'].iloc[-1]:.2f}")
-            print(f"    • 下軌支撐: ${sig['df']['Lower_Band'].iloc[-1]:.2f}")
-            if 'Chandelier_Long' in sig['df'].columns:
-                print(f"    • Chandelier 止損: ${sig['df']['Chandelier_Long'].iloc[-1]:.2f}")
-            print()
-        
-        print("="*100)
-        print(f"⚠️  {len(sell_signals)} 個部位觸發賣出訊號！")
-        print("="*100)
+    print("="*120)
     
     # Summary
     print()
-    print("="*100)
+    print("="*120)
     print(" 投資組合摘要")
-    print("="*100)
+    print("="*120)
     winning = [r for r in results if r['PnL%'] > 0]
     print(f"總部位數: {len(results)}")
     print(f"獲利部位: {len(winning)} ({len(winning)/len(results)*100 if results else 0:.1f}%)")
     print(f"平均損益: {sum(r['PnL%'] for r in results)/len(results) if results else 0:.2f}%")
     print(f"賣出訊號: {len(sell_signals)} 個")
-    print("="*100)
-
+    print("="*120)
 
 if __name__ == "__main__":
     monitor_portfolio()
