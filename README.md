@@ -94,3 +94,7 @@ Agent 應維護並讀取以下 CSV 文件：
 * **初始化指令**：Agent 首次部署需執行 `python init_setup.py` 以建立數據架構。
 
 ---
+## 📸 於 Manus 至 Telegram 中使用 Skills 範例截圖
+<div align="center">
+  <img src="../Manus.jpg" alt="Manus 範例圖片" width="80%">
+</div>
